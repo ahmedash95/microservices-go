@@ -21,10 +21,16 @@ func main() {
 	registerTheService()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello World from service: %s\n", SERVICE_NAME)
+		fmt.Fprintf(w, "Hello World from service: %s <br> %s \n", SERVICE_NAME, r.URL.String())
 	})
 
+	http.HandleFunc("/all", allCommentsHandler)
+
 	http.ListenAndServe(":"+PORT, nil)
+}
+
+func allCommentsHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "All Comments goes here")
 }
 
 func registerTheService() {
