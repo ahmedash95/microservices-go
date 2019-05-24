@@ -1,0 +1,61 @@
+version: '2'
+
+services:
+    go-api-gateway:
+        image: golang:1.6.1-alpine
+        volumes:
+            - ./src/gateway:/go/src/gateway
+        working_dir: /go/src/gateway
+        command: go run main.go
+        ports: 
+            - '3000:3001'
+        environment:
+            PORT: "3001"
+        networks:
+            - backend
+            - frontend
+
+    go-api-posts:
+        image: golang:1.6.1-alpine
+        volumes:
+            - ./src/posts:/go/src/posts
+        working_dir: /go/src/posts
+        command: go run main.go
+        ports: 
+            - '3002:3002'
+        environment:
+            PORT: "3002"
+            SERVICE_NAME: posts
+            CONTAINER_URL: http://go-api-posts:3002
+            API_GATEWAY: http://go-api-gateway:3001/server-register
+        networks:
+            - backend
+
+        links:
+            - go-api-gateway
+
+    
+    go-api-comments:
+        image: golang:1.6.1-alpine
+        volumes:
+            - ./src/comments:/go/src/comments
+        working_dir: /go/src/comments
+        command: go run main.go
+        ports: 
+            - '3002:3002'
+        environment:
+            PORT: "3002"
+            SERVICE_NAME: comments
+            CONTAINER_URL: http://go-api-comments:3002
+            API_GATEWAY: http://go-api-gateway:3001/server-register
+        networks:
+            - backend
+
+        links:
+            - go-api-gateway
+
+networks:
+  frontend:
+    internal: false
+  backend:
+    internal: true
