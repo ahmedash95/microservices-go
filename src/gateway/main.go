@@ -2,7 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -31,42 +33,7 @@ func main() {
 		PORT = "3001"
 	}
 
-	Instances[""] = append(Instances[""], Server{fmt.Sprintf("http://localhost:%s", PORT)})
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		url, _ := url.Parse(r.URL.String())
-
-		paths := strings.Split(url.Path, "/")
-
-		fmt.Println(paths[1])
-
-		service := ""
-
-		if len(paths) > 1 {
-			service = paths[1]
-		}
-
-		fmt.Printf("Proxy service %s\n", service)
-
-		serviceURL := Instances[""][0].URL
-
-		if urls, Ok := Instances[service]; Ok {
-			serviceURL = urls[0].URL
-		}
-
-		origin, _ := url.Parse(serviceURL)
-
-		director := func(req *http.Request) {
-			req.Header.Add("X-Forwarded-Host", req.Host)
-			req.Header.Add("X-Origin-Host", origin.Host)
-			req.URL.Scheme = "http"
-			req.URL.Host = origin.Host
-		}
-
-		proxy := &httputil.ReverseProxy{Director: director}
-
-		proxy.ServeHTTP(w, r)
-	})
+	http.HandleFunc("/", ProxyHandler)
 
 	http.HandleFunc("/instances", displayInstancesHandler)
 	http.HandleFunc("/server-register", registerNewSerivce)
@@ -94,4 +61,52 @@ func registerNewSerivce(w http.ResponseWriter, r *http.Request) {
 
 	Instances[serviceName] = append(Instances[serviceName], newInstance)
 	fmt.Printf("Add new instance to service %s with url %s\n", serviceName, instanceURL)
+}
+
+func ProxyHandler(w http.ResponseWriter, r *http.Request) {
+	url, _ := url.Parse(r.URL.String())
+
+	serviceURL, err := GetServiceURL(url)
+
+	if err != nil {
+		responseBody := map[string]string{
+			"error": err.Error(),
+		}
+		body, _ := json.Marshal(responseBody)
+		w.Write(body)
+		return
+	}
+
+	origin, _ := url.Parse(serviceURL)
+
+	director := func(req *http.Request) {
+		req.Header.Add("X-Forwarded-Host", req.Host)
+		req.Header.Add("X-Origin-Host", origin.Host)
+		req.URL.Scheme = "http"
+		req.URL.Host = origin.Host
+	}
+
+	proxy := &httputil.ReverseProxy{Director: director}
+
+	// remove service name from first param
+	r.URL.Path = fmt.Sprintf("/%s", strings.Join(strings.Split(r.URL.Path, "/")[2:], "/"))
+
+	proxy.ServeHTTP(w, r)
+}
+
+func GetServiceURL(u *url.URL) (string, error) {
+	paths := strings.Split(u.Path, "/")
+
+	if len(paths) < 1 {
+		return "", errors.New("Invalid URL")
+	}
+
+	service := paths[1]
+
+	urls, Ok := Instances[service]
+	if !Ok {
+		return "", errors.New("Service not found")
+	}
+
+	return urls[rand.Int()%len(urls)].URL, nil
 }
