@@ -2,10 +2,9 @@ version: '2'
 
 services:
     go-api-gateway:
-        image: golang:1.6.1-alpine
+        build: docker/golang
         volumes:
-            - ./src/gateway:/go/src/gateway
-        working_dir: /go/src/gateway
+            - ./src/gateway:/go/src/app
         command: go run main.go
         ports: 
             - '3000:3001'
@@ -16,43 +15,39 @@ services:
             - frontend
 
     go-api-posts:
-        image: golang:1.6.1-alpine
+        build: docker/golang
         volumes:
-            - ./src/posts:/go/src/posts
-        working_dir: /go/src/posts
+            - ./src/posts:/go/src/app
         command: go run main.go
         ports: 
-            - '3002:3002'
+            - '80:80'
         environment:
-            PORT: "3002"
+            PORT: "80"
             SERVICE_NAME: posts
-            CONTAINER_URL: http://go-api-posts:3002
+            CONTAINER_URL: http://go-api-posts:80
             API_GATEWAY: http://go-api-gateway:3001/server-register
         networks:
             - backend
-
-        links:
-            - go-api-gateway
+        depends_on:
+            - "go-api-gateway"
 
     
     go-api-comments:
-        image: golang:1.6.1-alpine
+        build: docker/golang
         volumes:
-            - ./src/comments:/go/src/comments
-        working_dir: /go/src/comments
+            - ./src/comments:/go/src/app
         command: go run main.go
         ports: 
-            - '3002:3002'
+            - '80:80'
         environment:
-            PORT: "3002"
+            PORT: "80"
             SERVICE_NAME: comments
-            CONTAINER_URL: http://go-api-comments:3002
+            CONTAINER_URL: http://go-api-comments:80
             API_GATEWAY: http://go-api-gateway:3001/server-register
         networks:
             - backend
-
-        links:
-            - go-api-gateway
+        depends_on:
+            - "go-api-gateway"
 
 networks:
   frontend:
