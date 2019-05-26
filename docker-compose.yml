@@ -5,52 +5,76 @@ services:
         build: docker/golang
         volumes:
             - ./src/gateway:/go/src/app
-        command: go run main.go
+        command: >
+            bash -c "go build && ./app"
         ports: 
             - '3000:3001'
         environment:
             PORT: "3001"
-        networks:
-            - backend
-            - frontend
+
+    go-api-auth:
+        build: docker/golang
+        volumes:
+            - ./src/auth:/go/src/app
+        command: >
+            bash -c "go build && ./app"
+        environment:
+            PORT: "80"
+            SERVICE_NAME: auth
+            CONTAINER_URL: http://go-api-auth:80
+            API_GATEWAY: http://go-api-gateway:3001/server-register
+            DB_HOST: db
+            DB_PORT: 5432
+            DB_NAME: auth_service
+            DB_USER: postgres
+            DB_PASS: db_pass
+        depends_on:
+            - "go-api-gateway"
+            - "db"
 
     go-api-posts:
         build: docker/golang
         volumes:
             - ./src/posts:/go/src/app
-        command: go run main.go
-        ports: 
-            - '80:80'
+        command: >
+            bash -c "go build && ./app"
+        # ports: 
+        #     - '80:80'
         environment:
             PORT: "80"
             SERVICE_NAME: posts
             CONTAINER_URL: http://go-api-posts:80
             API_GATEWAY: http://go-api-gateway:3001/server-register
-        networks:
-            - backend
         depends_on:
             - "go-api-gateway"
+            - "db"
 
     
     go-api-comments:
         build: docker/golang
         volumes:
             - ./src/comments:/go/src/app
-        command: go run main.go
-        ports: 
-            - '80:80'
+        command: >
+            bash -c "go build && ./app"
+        # ports: 
+        #     - '80:80'
         environment:
             PORT: "80"
             SERVICE_NAME: comments
             CONTAINER_URL: http://go-api-comments:80
             API_GATEWAY: http://go-api-gateway:3001/server-register
-        networks:
-            - backend
         depends_on:
             - "go-api-gateway"
+            - "db"
 
-networks:
-  frontend:
-    internal: false
-  backend:
-    internal: true
+    db:
+        image: postgres
+        restart: always
+        ports: 
+            - '5433:5432'
+        volumes:
+            - ./lib/docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d
+        environment:
+            - POSTGRES_MULTIPLE_DATABASES=auth_service,posts_service,comments_service
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=db_pass
