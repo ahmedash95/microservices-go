@@ -16,6 +16,7 @@ services:
         build: docker/golang
         volumes:
             - ./src/auth:/go/src/app
+            - ./lib/github.com/ahmedash95:/go/src/github.com/ahmedash95
         command: >
             bash -c "go build && ./app"
         environment:
@@ -36,6 +37,7 @@ services:
         build: docker/golang
         volumes:
             - ./src/posts:/go/src/app
+            - ./lib/github.com/ahmedash95:/go/src/github.com/ahmedash95
         command: >
             bash -c "go build && ./app"
         # ports: 
@@ -54,6 +56,7 @@ services:
         build: docker/golang
         volumes:
             - ./src/comments:/go/src/app
+            - ./lib/github.com/ahmedash95:/go/src/github.com/ahmedash95
         command: >
             bash -c "go build && ./app"
         # ports: 
