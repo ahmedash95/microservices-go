@@ -12,10 +12,6 @@ import (
 	"strings"
 )
 
-/**
-Instances is the container of the services and it's available instances
-*/
-
 type RegisterInstancePayload struct {
 	ServiceName string `json:"service_name"`
 	URL         string `json:"url"`
@@ -25,6 +21,7 @@ type Server struct {
 	URL string
 }
 
+/** Instances is the container of the services and it's available instances*/
 var Instances = make(map[string][]Server)
 
 func main() {
