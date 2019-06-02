@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -25,7 +26,7 @@ func main() {
 	}
 	_, err := gatewaySDK.RegisterService(service)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Cant't regsiter auth service:%s", err.Error()))
 	}
 
 	DB_Init()
@@ -34,6 +35,7 @@ func main() {
 	r.HandleFunc("/user/create", HandleUserCreate).Methods("POST")
 	r.HandleFunc("/login", HandleUserLogin).Methods("POST")
 	r.HandleFunc("/user", HandleGetLoggedInUser).Methods("POST")
+	r.HandleFunc("/valid_token", HandleIsValidToken).Methods("POST")
 
 	http.ListenAndServe(":"+PORT, r)
 }

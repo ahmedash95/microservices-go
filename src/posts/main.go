@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	auth "github.com/ahmedash95/authSDK"
 	"github.com/ahmedash95/gatewaySDK"
 	"github.com/gorilla/mux"
 )
@@ -24,10 +25,14 @@ func main() {
 	}
 	_, err := gatewaySDK.RegisterService(service)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Cant't regsiter posts service:%s", err.Error()))
 	}
-
+	RegisterAuthService()
 	RegisterWebServer()
+}
+
+func RegisterAuthService() {
+	auth.Init(os.Getenv("AUTH_SERVICE_URI"))
 }
 
 func RegisterWebServer() {
@@ -47,6 +52,8 @@ func RegisterWebServer() {
 		postId := mux.Vars(r)["id"]
 		fmt.Fprintf(w, "Display Post: %s", postId)
 	})
+
+	rtr.HandleFunc("/create", PostsCreateHandler)
 
 	http.Handle("/", rtr)
 	http.ListenAndServe(":"+PORT, nil)

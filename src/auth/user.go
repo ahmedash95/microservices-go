@@ -30,7 +30,7 @@ func HandleUserCreate(w http.ResponseWriter, r *http.Request) {
 	var u UserPayload
 	err := decoder.Decode(&u)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Can't handle user create:%s", err.Error()))
 	}
 
 	user := User{
@@ -77,7 +77,7 @@ func HandleUserLogin(w http.ResponseWriter, r *http.Request) {
 	var u LoginPayload
 	err := decoder.Decode(&u)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Can't handle user login:%s", err.Error()))
 	}
 
 	user := FindByEmail(u.Email)
@@ -174,11 +174,38 @@ func HandleGetLoggedInUser(w http.ResponseWriter, r *http.Request) {
 	u.Email = user.Email
 	u.Name = user.Name
 
-	response := map[string]interface{}{
-		"status": "success",
-		"user":   u,
-	}
-	body, _ := json.Marshal(response)
+	body, _ := json.Marshal(u)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(body)
+}
+
+func HandleIsValidToken(w http.ResponseWriter, r *http.Request) {
+	tokenString := r.Header.Get("X-Token")
+
+	if tokenString == "" {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(401)
+		return
+	}
+
+	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+		// hmacSampleSecret is a []byte containing your secret, e.g. []byte("my_secret_key")
+		return hmacSampleSecret, nil
+	})
+
+	// asd
+	if token.Valid {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	return
 }

@@ -24,7 +24,7 @@ func main() {
 	}
 	_, err := gatewaySDK.RegisterService(service)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Cant't regsiter comments service:%s", err.Error()))
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

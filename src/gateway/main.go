@@ -48,7 +48,7 @@ func registerNewSerivce(w http.ResponseWriter, r *http.Request) {
 	var payload RegisterInstancePayload
 	err := decoder.Decode(&payload)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Cant't regsiter the service:%s", err.Error()))
 	}
 
 	serviceName := payload.ServiceName
