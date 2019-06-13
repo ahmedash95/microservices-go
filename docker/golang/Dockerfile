@@ -13,3 +13,7 @@ RUN go get -u github.com/jinzhu/gorm
 RUN go get -u golang.org/x/crypto/argon2
 
 RUN go get -u github.com/dgrijalva/jwt-go
+
+RUN go get -u github.com/go-ozzo/ozzo-validation
+
+RUN go get -u github.com/go-ozzo/ozzo-validation/is

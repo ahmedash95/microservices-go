@@ -136,7 +136,7 @@ func HandleGetLoggedInUser(w http.ResponseWriter, r *http.Request) {
 	if tokenString == "" {
 		response := map[string]string{
 			"status":  "error",
-			"message": "Invalid token",
+			"message": "Invalid/Empty token",
 		}
 		body, _ := json.Marshal(response)
 		w.Header().Set("Content-Type", "application/json")

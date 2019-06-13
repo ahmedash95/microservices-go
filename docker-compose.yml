@@ -7,7 +7,7 @@ services:
             - ./src/gateway:/go/src/app
         command: >
             bash -c "go build && ./app"
-        ports: 
+        ports:
             - '3000:3001'
         environment:
             PORT: "3001"
@@ -40,18 +40,24 @@ services:
             - ./lib/github.com/ahmedash95:/go/src/github.com/ahmedash95
         command: >
             bash -c "go build && ./app"
-        # ports: 
+        # ports:
         #     - '80:80'
         environment:
             PORT: "80"
             SERVICE_NAME: posts
             CONTAINER_URL: http://go-api-posts:80
             API_GATEWAY: http://go-api-gateway:3001/server-register
+            AUTH_SERVICE_URI: http://go-api-auth
+            DB_HOST: db
+            DB_PORT: 5432
+            DB_NAME: posts_service
+            DB_USER: postgres
+            DB_PASS: db_pass
         depends_on:
             - "go-api-gateway"
             - "db"
 
-    
+
     go-api-comments:
         build: docker/golang
         volumes:
@@ -59,13 +65,19 @@ services:
             - ./lib/github.com/ahmedash95:/go/src/github.com/ahmedash95
         command: >
             bash -c "go build && ./app"
-        # ports: 
+        # ports:
         #     - '80:80'
         environment:
             PORT: "80"
             SERVICE_NAME: comments
             CONTAINER_URL: http://go-api-comments:80
             API_GATEWAY: http://go-api-gateway:3001/server-register
+            AUTH_SERVICE_URI: http://go-api-auth
+            DB_HOST: db
+            DB_PORT: 5432
+            DB_NAME: comments_service
+            DB_USER: postgres
+            DB_PASS: db_pass
         depends_on:
             - "go-api-gateway"
             - "db"
@@ -73,7 +85,7 @@ services:
     db:
         image: postgres
         restart: always
-        ports: 
+        ports:
             - '5433:5432'
         volumes:
             - ./lib/docker-postgresql-multiple-databases:/docker-entrypoint-initdb.d

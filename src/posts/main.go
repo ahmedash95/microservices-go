@@ -27,6 +27,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Cant't regsiter posts service:%s", err.Error()))
 	}
+	DB_Init()
 	RegisterAuthService()
 	RegisterWebServer()
 }
@@ -38,30 +39,26 @@ func RegisterAuthService() {
 func RegisterWebServer() {
 	rtr := mux.NewRouter()
 
-	rtr.Use(RegisterHeadersMidlleware)
+	rtr.Use(AuthMiddleware)
 
-	rtr.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello World from service: %s\n", SERVICE_NAME)
-	})
-
-	rtr.HandleFunc("/home", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Posts home page")
-	})
-
-	rtr.HandleFunc("/post/{id:[0-9]+}", func(w http.ResponseWriter, r *http.Request) {
-		postId := mux.Vars(r)["id"]
-		fmt.Fprintf(w, "Display Post: %s", postId)
-	})
-
-	rtr.HandleFunc("/create", PostsCreateHandler)
+	rtr.HandleFunc("/", GetLastPosts).Methods("GET")
+	rtr.HandleFunc("/create", PostsCreateHandler).Methods("POST")
+	rtr.HandleFunc("/{id:[0-9]+}", PostsUpdateHandler).Methods("POST")
+	rtr.HandleFunc("/{id:[0-9]+}", ShowPostHandler).Methods("GET")
+	rtr.HandleFunc("/user/{id:[0-9]+}", ShowUserPosts).Methods("GET")
 
 	http.Handle("/", rtr)
 	http.ListenAndServe(":"+PORT, nil)
 }
 
-func RegisterHeadersMidlleware(next http.Handler) http.Handler {
+func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("X-Instance", r.Header.Get("X-Origin-Host"))
+		user := auth.GetUser(r)
+		if !user.IS_VALID {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.Header().Add("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
 	})
 }

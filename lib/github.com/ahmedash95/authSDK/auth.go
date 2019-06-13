@@ -21,14 +21,15 @@ func Init(authServiceURI string) {
 }
 
 func IsValidToken(token string) bool {
-	fmt.Sprintf("%s with token: %s", ENDPOINT_URI+"/valid_token", token)
+	fmt.Printf("%s with token: %s\n", ENDPOINT_URI+"/valid_token", token)
 	client := &http.Client{}
 	request, _ := http.NewRequest("POST", ENDPOINT_URI+"/valid_token", bytes.NewReader([]byte("")))
 	request.Header.Add("Content-Type", "application/json")
-	request.Header.Add("X-Token", token)
+	request.Header.Add("X-token", token)
 	resp, err := client.Do(request)
 
 	if err != nil {
+		fmt.Printf("AuthSDK: request error: %s\n", err.Error())
 		return false
 	}
 
@@ -43,11 +44,10 @@ func ValidateRequestToken(r *http.Request) bool {
 }
 
 func GetUser(r *http.Request) User {
-	invalidUser := User{IS_VALID: false, NAME: "a7aa"}
+	invalidUser := User{IS_VALID: false}
 	valid := ValidateRequestToken(r)
 	if !valid {
-		fmt.Println("Invalid token")
-		invalidUser.NAME = "invalid token"
+		fmt.Println("Validate: Invalid token")
 		return invalidUser
 	}
 
