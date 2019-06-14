@@ -82,6 +82,24 @@ services:
             - "go-api-gateway"
             - "db"
 
+    go-seeder:
+        build: docker/golang
+        volumes:
+            - ./src/seeder:/go/src/app
+            - ./lib/github.com/ahmedash95:/go/src/github.com/ahmedash95
+        command: >
+            bash -c "go build && tail -f /dev/null"
+        # ports:
+        #     - '80:80'
+        environment:
+            DB_HOST: db
+            DB_PORT: 5432
+            DB_USER: postgres
+            DB_PASS: db_pass
+        depends_on:
+            - "db"
+            - "go-api-gateway"
+
     db:
         image: postgres
         restart: always

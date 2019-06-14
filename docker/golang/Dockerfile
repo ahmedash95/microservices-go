@@ -17,3 +17,9 @@ RUN go get -u github.com/dgrijalva/jwt-go
 RUN go get -u github.com/go-ozzo/ozzo-validation
 
 RUN go get -u github.com/go-ozzo/ozzo-validation/is
+
+RUN go get -u github.com/urfave/cli
+
+RUN go get -u gopkg.in/cheggaaa/pb.v1
+
+RUN go get -u github.com/brianvoe/gofakeit
