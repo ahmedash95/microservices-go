@@ -154,7 +154,7 @@ func GetLastPosts(w http.ResponseWriter, r *http.Request) {
 		isLastPage = 1
 	}
 
-	GetDB().Order("publish_date desc").Where("is_draft = ?", 1).Offset(offset).Limit(perpage).Find(&posts)
+	GetDB().Order("publish_date desc").Where("is_draft = ?", 0).Offset(offset).Limit(perpage).Find(&posts)
 
 	w.Header().Add("X-Posts-Total", strconv.Itoa(count))
 	w.Header().Add("X-Last-Page", strconv.Itoa(isLastPage))
