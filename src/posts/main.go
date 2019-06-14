@@ -40,6 +40,7 @@ func RegisterWebServer() {
 	rtr := mux.NewRouter()
 
 	rtr.Use(AuthMiddleware)
+	rtr.Use(JsonResponseHeader)
 
 	rtr.HandleFunc("/", GetLastPosts).Methods("GET")
 	rtr.HandleFunc("/create", PostsCreateHandler).Methods("POST")
@@ -58,6 +59,12 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func JsonResponseHeader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
 		next.ServeHTTP(w, r)
 	})
