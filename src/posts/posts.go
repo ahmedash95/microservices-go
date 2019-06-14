@@ -109,7 +109,7 @@ func ShowUserPosts(w http.ResponseWriter, r *http.Request) {
 	GetDB().Model(&Post{}).Where("user_id = ?", userID).Count(&count)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	perpage := 2
+	perpage := 20
 	offset := 0
 	isLastPage := 0
 	if page < 2 {
@@ -127,7 +127,12 @@ func ShowUserPosts(w http.ResponseWriter, r *http.Request) {
 	} else {
 		query = query.Where("user_id = ? and is_draft = ?", userID, 1)
 	}
-	query.Order("publish_date desc").Offset(offset).Limit(perpage).Find(&posts)
+	query.
+		Select("id,title,SUBSTRING(content,0,150) as content,is_draft,image_url,publish_date,user_id,created_at,updated_at,deleted_at").
+		Order("publish_date desc").
+		Offset(offset).
+		Limit(perpage).
+		Find(&posts)
 
 	w.Header().Add("X-Posts-Total", strconv.Itoa(count))
 	w.Header().Add("X-Last-Page", strconv.Itoa(isLastPage))
@@ -142,7 +147,7 @@ func GetLastPosts(w http.ResponseWriter, r *http.Request) {
 	GetDB().Model(&Post{}).Count(&count)
 
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	perpage := 50
+	perpage := 20
 	offset := 0
 	isLastPage := 0
 	if page < 2 {
@@ -154,7 +159,13 @@ func GetLastPosts(w http.ResponseWriter, r *http.Request) {
 		isLastPage = 1
 	}
 
-	GetDB().Order("publish_date desc").Where("is_draft = ?", 0).Offset(offset).Limit(perpage).Find(&posts)
+	GetDB().
+		Select("id,title,SUBSTRING(content,0,150) as content,is_draft,image_url,publish_date,user_id,created_at,updated_at,deleted_at").
+		Order("publish_date desc").
+		Where("is_draft = ?", 0).
+		Offset(offset).
+		Limit(perpage).
+		Find(&posts)
 
 	w.Header().Add("X-Posts-Total", strconv.Itoa(count))
 	w.Header().Add("X-Last-Page", strconv.Itoa(isLastPage))
